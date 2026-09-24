@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>የእኔ የ1 ዓመት ፕላነር</title>
+<style>
+*{box-sizing:border-box}body{font-family:Arial,"Noto Sans Ethiopic",sans-serif;margin:0;background:#f4f6f8;color:#172033}
+header{background:#111827;color:#fff;padding:20px 16px;text-align:center}header h1{margin:0 0 7px;font-size:25px}
+nav{display:flex;gap:7px;overflow:auto;padding:10px;background:#fff;position:sticky;top:0;z-index:5;border-bottom:1px solid #ddd}
+nav button,.btn{padding:10px 13px;border:0;border-radius:10px;background:#e9edf2;color:#172033;white-space:nowrap}
+nav button.active,.primary{background:#111827;color:#fff}
+main{padding:14px;max-width:900px;margin:auto}.card{background:#fff;padding:16px;border-radius:16px;margin:12px 0;box-shadow:0 2px 9px #00000010}
+.row{display:flex;gap:9px;align-items:center;margin:9px 0;flex-wrap:wrap}
+input,select,textarea{padding:11px;border:1px solid #d7dce3;border-radius:9px;font:inherit}input,textarea{flex:1;min-width:170px}
+textarea{min-height:80px;width:100%}.pct{font-size:31px;font-weight:bold}.bar{height:12px;background:#e8ebef;border-radius:8px;overflow:hidden}.fill{height:100%;background:#111827}
+.task{display:flex;align-items:center;gap:9px;padding:11px 0;border-bottom:1px solid #eee}.task span{flex:1}.done span{text-decoration:line-through;color:#89909d}
+.small{font-size:13px;color:#697386}.danger{background:#fee2e2;color:#991b1b}.success{background:#dcfce7;color:#166534}
+.tag{display:inline-block;padding:4px 8px;border-radius:8px;background:#eef2ff;font-size:12px}.hidden{display:none}
+.lang{position:absolute;right:10px;top:10px}.future{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.future{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<button class="btn lang" onclick="toggleLang()" id="langBtn">EN</button>
+<h1 id="title">የእኔ የ1 ዓመት ፕላነር</h1>
+<div class="small" id="subtitle">ሰኞ–ዓርብ • ሳምንታዊ ግቦች • የወር መለኪያ</div>
+</header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<script>
+const AM={title:"የእኔ የ1 ዓመት ፕላነር",sub:"ሰኞ–ዓርብ • ሳምንታዊ ግቦች • የወር መለኪያ",add:"ግብ ጨምሪ",goals:"የእኔ ግቦች",week:"ሳምንት",edit:"አስተካክዪ",del:"ሰርዢ",share:"ለሌሎች አጋሪ",social:"በማህበራዊ ሚዲያ አጋሪ",future:"የወደፊት ዓመት ጨምሪ",year:"ዓመት",save:"አስቀምጪ",cancel:"ሰርዢ",review:"የወሩ ግምገማ",none:"ግቦች እስካሁን የሉም።",pct:"ተጠናቅቋል",note:"ቅዳሜና እሁድ በዋናው ፕላን አይቆጠሩም።"},
+EN:{title:"My 1-Year Planner",sub:"Monday–Friday • Weekly goals • Monthly progress",add:"Add goal",goals:"My goals",week:"Week",edit:"Edit",del:"Delete",share:"Share with others",social:"Share on social media",future:"Add future year",year:"Year",save:"Save",cancel:"Cancel",review:"Monthly review",none:"No goals yet.",pct:"completed",note:"Saturday and Sunday are not counted in the main plan."}};
+const monthsAM=["ጃንዩወሪ","ፌብሩወሪ","ማርች","ኤፕሪል","ሜይ","ጁን","ጁላይ","ኦገስት","ሴፕቴምበር","ኦክቶበር","ኖቬምበር","ዲሴምበር"];
+const monthsEN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+let lang=localStorage.getItem("lang")||"am", year=+(localStorage.getItem("year")||new Date().getFullYear()), month=+(localStorage.getItem("month")||new Date().getMonth());
+let db=JSON.parse(localStorage.getItem("planner2")||"{}");
+function key(){return year+"-"+month} function tasks(){return db[key()]||[]}
+function save(){localStorage.setItem("planner2",JSON.stringify(db))}
+function T(k){return (lang==="am"?AM:EN)[k]}
+function months(){return lang==="am"?monthsAM:monthsEN}
+function renderNav(){nav.innerHTML=months().map((m,i)=>`<button class="${i===month?'active':''}" onclick="month=${i};render()">${m}</button>`).join("")}
+function render(){
+document.documentElement.lang=lang; title.textContent=T("title");subtitle.textContent=T("sub");langBtn.textContent=lang==="am"?"EN":"አማ";
+renderNav();
+let t=tasks(),done=t.filter(x=>x.done).length,pct=t.length?Math.round(done/t.length*100):0;
+app.innerHTML=`<div class="card"><div class="row"><select id="yearSelect" onchange="year=+this.value;localStorage.setItem('year',year);render()">${yearsOptions()}</select>
+<button class="btn" onclick="futureYear()">＋ ${T("future")}</button></div>
+<div class="pct">${pct}%</div><div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+<p class="small">${done}/${t.length} ${T("pct")} • ${T("note")}</p></div>
+<div class="card"><h2>${T("add")}</h2><div class="row"><input id="txt" placeholder="${lang==="am"?"ለምሳሌ፡ 20 ገጽ መጽሐፍ ማንበብ":"Example: Read 20 pages"}><select id="wk">${[1,2,3,4,5].map(x=>`<option>${T("week")} ${x}</option>`).join("")}</select><button class="btn primary" onclick="add()">＋ ${T("add")}</button></div></div>
+<div class="card"><h2>${T("goals")}</h2>${t.length?t.map((x,i)=>`<div class="task ${x.done?'done':''}"><input type="checkbox" ${x.done?'checked':''} onchange="toggle(${i})"><span><b>${T("week")} ${x.week}</b> — ${esc(x.text)}</span><button class="btn" onclick="editTask(${i})">✎</button><button class="btn danger" onclick="delTask(${i})">×</button></div>`).join(""):`<p class="small">${T("none")}</p>`}</div>
+<div class="card"><h2>${T("review")}</h2><p class="small">${lang==="am"?"በወሩ መጨረሻ የተሰሩትን ምልክት ስታደርጊ መቶኛው በራሱ ይሰላል።":"Mark completed goals and the percentage is calculated automatically."}</p>
+<div class="row"><button class="btn primary" onclick="sharePlan()">🔗 ${T("share")}</button><button class="btn" onclick="socialShare()">📱 ${T("social")}</button></div></div>`;
+}
+function yearsOptions(){let ys=[];let now=new Date().getFullYear();for(let y=Math.min(now-2,year-2);y<=Math.max(now+5,year+2);y++)ys.push(`<option ${y===year?'selected':''}>${y}</option>`);return ys.join("")}
+function futureYear(){let y=prompt(lang==="am"?"የሚጨመረውን ዓመት ጻፊ፡":"Enter future year:",year+1);if(y&&/^\\d{4}$/.test(y)){year=+y;localStorage.setItem("year",year);render()}}
+function add(){let v=txt.value.trim();if(!v)return;db[key()]=tasks();db[key()].push({text:v,week:+wk.value.replace(/\\D/g,''),done:false});save();render()}
+function toggle(i){db[key()][i].done=!db[key()][i].done;save();render()}
+function delTask(i){if(confirm(lang==="am"?"ይህን ግብ ሰርዘው?":"Delete this goal?")){db[key()].splice(i,1);save();render()}}
+function editTask(i){let v=prompt(lang==="am"?"ግቡን አስተካክዪ፡":"Edit goal:",db[key()][i].text);if(v!==null&&v.trim()){db[key()][i].text=v.trim();save();render()}}
+function toggleLang(){lang=lang==="am"?"en":"am";localStorage.setItem("lang",lang);render()}
+function sharePlan(){let payload=btoa(unescape(encodeURIComponent(JSON.stringify({year,month,items:tasks()}))));let url=location.href.split("#")[0]+"#share="+payload;navigator.clipboard?.writeText(url);alert(lang==="am"?"የshare ሊንኩ ተቀድቷል። ለሰዎች መላክ ትችያለሽ።":"Share link copied. You can send it to others.")}
+async function socialShare(){let text=lang==="am"?"የእኔ የ1 ዓመት ፕላን":"My 1-Year Plan";if(navigator.share){try{await navigator.share({title:text,text:text+" — "+location.href})}catch(e){}}else sharePlan()}
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function loadShare(){if(location.hash.startsWith("#share=")){try{let d=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7)))));year=d.year;month=d.month;db[key()]=d.items;save();history.replaceState(null,"",location.pathname)}catch(e){}}}
+loadShare();render();
+</script>
+</body>
+</html>
